@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAIT Knowledge Quiz</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --correct-color: #2ecc71;
+            --wrong-color: #e74c3c;
+            --neutral-color: #7f8c8d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--primary-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            animation: fadeInDown 1s ease;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .quiz-container, .admin-container, .login-container, .results-container {
+            padding: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-number {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option {
+            background-color: var(--light-color);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .option:hover {
+            background-color: #d6dbdf;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .option.selected {
+            border-color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+            animation: pulse 0.5s;
+        }
+
+        .option.correct {
+            border-color: var(--correct-color);
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+
+        .option.wrong {
+            border-color: var(--wrong-color);
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .feedback {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .feedback.correct {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--correct-color);
+            border-left: 4px solid var(--correct-color);
+        }
+
+        .feedback.wrong {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--wrong-color);
+            border-left: 4px solid var(--wrong-color);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background-color: var(--neutral-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-next {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+        }
+
+        .btn-admin {
+            background-color: var(--accent-color);
+        }
+
+        .btn-logout {
+            background-color: var(--neutral-color);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .timer-container {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: var(--shadow);
+        }
+
+        .timer-container.warning {
+            background-color: var(--accent-color);
+            animation: pulse 1s infinite;
+        }
+
+        .results-container {
+            text-align: center;
+        }
+
+        .results-score {
+            font-size: 3rem;
+            margin: 1rem 0;
+            color: var(--secondary-color);
+            animation: scaleIn 0.5s ease;
+        }
+
+        .results-message {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .share-container {
+            margin: 2rem 0;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .admin-form {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .question-list {
+            margin-top: 2rem;
+            border-top: 1px solid #ddd;
+            padding-top: 1rem;
+        }
+
+        .question-item {
+            background-color: var(--light-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .question-actions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .quiz-container, .admin-container, .login-container, .results-container {
+                padding: 1.5rem;
+            }
+
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+
+            .button-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Maharaja Agrasen Institute of Technology</h1>
+        <p>Test your knowledge about our college!</p>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Login Section -->
+            <section id="login-section" class="login-container">
+                <h2>Welcome to MAIT Quiz</h2>
+                <p>Test your knowledge about Maharaja Agrasen Institute of Technology!</p>
+                <div class="button-container">
+                    <button id="start-quiz" class="btn">Start Quiz</button>
+                    <button id="admin-login" class="btn btn-admin">Admin Login</button>
+                </div>
+                <div id="admin-login-form" class="admin-form hidden">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Enter admin username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter admin password">
+                    </div>
+                    <button id="login-submit" class="btn btn-admin">Login</button>
+                </div>
+            </section>
+
+            <!-- Quiz Section -->
+            <section id="quiz-section" class="quiz-container hidden">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="timer-container" id="timer">30</div>
+                <div class="question-number" id="question-number"></div>
+                <h2 class="question-text" id="question-text"></h2>
+                <div class="options-container" id="options-container"></div>
+                <div class="feedback" id="feedback"></div>
+                <div class="button-container">
+                    <button id="submit-btn" class="btn btn-submit">Submit Answer</button>
+                    <button id="next-btn" class="btn btn-next hidden">Next Question</button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="results-container hidden">
+                <h2>Quiz Completed!</h2>
+                <div class="results-score" id="score">0/10</div>
+                <p class="results-message" id="results-message"></p>
+                <div class="button-container">
+                    <button id="restart-btn" class="btn">Restart Quiz</button>
+                    <button id="share-btn" class="btn">Share Results</button>
+                </div>
+                <div class="share-container hidden" id="share-container">
+                    <h3>Share your results:</h3>
+                    <div class="share-buttons">
+                        <button class="btn" id="screenshot-btn">Take Screenshot</button>
+                        <button class="btn" id="copy-result-btn">Copy Result</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Section -->
+            <section id="admin-section" class="admin-container hidden">
+                <h2>Admin Dashboard</h2>
+                <div class="button-container">
+                    <button id="logout-btn" class="btn btn-logout">Logout</button>
+                </div>
+                <div class="admin-form">
+                    <h3>Add/Edit Question</h3>
+                    <input type="hidden" id="question-id">
+                    <div class="form-group">
+                        <label for="question-input">Question</label>
+                        <textarea id="question-input" rows="3" placeholder="Enter question"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="option1">Option 1</label>
+                        <input type="text" id="option1" placeholder="Enter option 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="option2">Option 2</label>
+                        <input type="text" id="option2" placeholder="Enter option 2">
+                    </div>
+                    <div class="form-group">
+                        <label for="option3">Option 3</label>
+                        <input type="text" id="option3" placeholder="Enter option 3">
+                    </div>
+                    <div class="form-group">
+                        <label for="option4">Option 4</label>
+                        <input type="text" id="option4" placeholder="Enter option 4">
+                    </div>
+                    <div class="form-group">
+                        <label for="correct-answer">Correct Answer</label>
+                        <select id="correct-answer">
+                            <option value="0">Option 1</option>
+                            <option value="1">Option 2</option>
+                            <option value="2">Option 3</option>
+                            <option value="3">Option 4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="explanation">Explanation (Optional)</label>
+                        <textarea id="explanation" rows="2" placeholder="Enter explanation for the answer"></textarea>
+                    </div>
+                    <div class="button-container">
+                        <button id="add-question-btn" class="btn">Add Question</button>
+                        <button id="update-question-btn" class="btn hidden">Update Question</button>
+                        <button id="cancel-edit-btn" class="btn btn-logout hidden">Cancel</button>
+                    </div>
+                </div>
+                <div class="question-list" id="question-list">
+                    <h3>Questions</h3>
+                    <!-- Questions will be populated here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Maharaja Agrasen Institute of Technology - CIE-356T Web Technologies Assignment</p>
+    </footer>
+
+    <script>
+        // Default quiz questions about Maharaja Agrasen Institute of Technology
+        let quizQuestions = [
+            {
+                question: "In which year was Maharaja Agrasen Institute of Technology (MAIT) established?",
+                options: ["1995", "1999", "2001", "2005"],
+                correctAnswer: 1,
+                explanation: "MAIT was established in 1999 by the Maharaja Agrasen Technical Education Society."
+            },
+            {
+                question: "Which university is MAIT affiliated with?",
+                options: ["Delhi University", "Guru Gobind Singh Indraprastha University", "Jawaharlal Nehru University", "Indira Gandhi National Open University"],
+                correctAnswer: 1,
+                explanation: "MAIT is affiliated with Guru Gobind Singh Indraprastha University (GGSIPU)."
+            },
+            {
+                question: "Where is MAIT located in Delhi?",
+                options: ["Dwarka", "Rohini", "Janakpuri", "Pitampura"],
+                correctAnswer: 2,
+                explanation: "MAIT is located in Rohtak Road, Janakpuri, New Delhi."
+            },
+            {
+                question: "Which of the following branches of engineering is NOT offered at MAIT?",
+                options: ["Computer Science Engineering", "Information Technology", "Mechanical Engineering", "Petroleum Engineering"],
+                correctAnswer: 3,
+                explanation: "MAIT offers CSE, IT, ECE, MAE, and EEE but not Petroleum Engineering."
+            },
+            {
+                question: "What is the name of MAIT's annual cultural festival?",
+                options: ["Resonance", "Crescendo", "Karvaan", "Technova"],
+                correctAnswer: 0,
+                explanation: "Resonance is the annual cultural festival of MAIT."
+            },
+            {
+                question: "Which department offers the AI & ML specialization at MAIT?",
+                options: ["Mechanical Engineering", "Electronics & Communication", "Computer Science", "Information Technology"],
+                correctAnswer: 3,
+                explanation: "The AI & ML specialization is offered by the Information Technology department."
+            },
+            {
+                question: "What is the full form of 'MATES' in the context of MAIT?",
+                options: ["MAIT Technical Engineering Society", "Maharaja Agrasen Technical Education Society", "MAIT Advanced Technical Education System", "Maharaja Agrasen Technical Excellence Society"],
+                correctAnswer: 1,
+                explanation: "MATES stands for Maharaja Agrasen Technical Education Society, which established MAIT."
+            },
+            {
+                question: "Which NBA accreditation does MAIT hold?",
+                options: ["Tier 1", "Tier 2", "Both Tier 1 and Tier 2", "None of the above"],
+                correctAnswer: 0,
+                explanation: "MAIT holds NBA Tier 1 accreditation for its engineering programs."
+            },
+            {
+                question: "How many lecture theaters are there in the MAIT main building?",
+                options: ["4", "6", "8", "10"],
+                correctAnswer: 2,
+                explanation: "There are 8 lecture theaters in the MAIT main building."
+            },
+            {
+                question: "Which programming language is primarily taught in the first year of the IT curriculum?",
+                options: ["Java", "Python", "C", "JavaScript"],
+                correctAnswer: 2,
+                explanation: "C programming is primarily taught in the first year of the IT curriculum at MAIT."
+            }
+        ];
+
+        // Admin credentials (in a real application, this would be stored securely on the server)
+        const adminCredentials = {
+            username: "admin",
+            password: "mait123"
+        };
+
+        // Quiz state variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+        let timerInterval;
+        let timeLeft = 30;
+        let quizStarted = false;
+        let questionsShuffled = [];
+
+        // DOM Elements
+        const loginSection = document.getElementById('login-section');
+        const quizSection = document.getElementById('quiz-section');
+        const resultsSection = document.getElementById('results-section');
+        const adminSection = document.getElementById('admin-section');
+        const adminLoginForm = document.getElementById('admin-login-form');
+
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const timer = document.getElementById('timer');
+
+        const scoreElement = document.getElementById('score');
+        const resultsMessage = document.getElementById('results-message');
+        const restartBtn = document.getElementById('restart-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const shareContainer = document.getElementById('share-container');
+        const screenshotBtn = document.getElementById('screenshot-btn');
+        const copyResultBtn = document.getElementById('copy-result-btn');
+
+        // Admin elements
+        const questionInput = document.getElementById('question-input');
+        const option1Input = document.getElementById('option1');
+        const option2Input = document.getElementById('option2');
+        const option3Input = document.getElementById('option3');
+        const option4Input = document.getElementById('option4');
+        const correctAnswerSelect = document.getElementById('correct-answer');
+        const explanationInput = document.getElementById('explanation');
+        const addQuestionBtn = document.getElementById('add-question-btn');
+        const updateQuestionBtn = document.getElementById('update-question-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const questionList = document.getElementById('question-list');
+        const questionIdInput = document.getElementById('question-id');
+
+        // Event Listeners
+        document.getElementById('start-quiz').addEventListener('click', startQuiz);
+        document.getElementById('admin-login').addEventListener('click', toggleAdminLoginForm);
+        document.getElementById('login-submit').addEventListener('click', adminLogin);
+        submitBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', loadNextQuestion);
+        restartBtn.addEventListener('click', restartQuiz);
+        shareBtn.addEventListener('click', toggleShareOptions);
+        screenshotBtn.addEventListener('click', takeScreenshot);
+        copyResultBtn.addEventListener('click', copyResult);
+        document.getElementById('logout-btn').addEventListener('click', logout);
+        addQuestionBtn.addEventListener('click', addQuestion);
+        updateQuestionBtn.addEventListener('click', updateQuestion);
+        cancelEditBtn.addEventListener('click', cancelEdit);
+
+        // Check if admin questions are in local storage
+        if (localStorage.getItem('maitQuizQuestions')) {
+            quizQuestions = JSON.parse(localStorage.getItem('maitQuizQuestions'));
+        } else {
+            // Save default questions to local storage
+            localStorage.setItem('maitQuizQuestions', JSON.stringify(quizQuestions));
+        }
+
+        // Functions
+        function toggleAdminLoginForm() {
+            adminLoginForm.classList.toggle('hidden');
+        }
+
+        function adminLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === adminCredentials.username && password === adminCredentials.password) {
+                loginSection.classList.add('hidden');
+                adminSection.classList.remove('hidden');
+                displayQuestionList();
+            } else {
+                alert('Invalid credentials. Please try again.');
+            }
+        }
+
+        function logout() {
+            adminSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
+            adminLoginForm.classList.add('hidden');
+            clearAdminForm();
+        }
+
+        function displayQuestionList() {
+            questionList.innerHTML = '<h3>Questions</h3>';
+            
+            quizQuestions.forEach((q, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                questionItem.innerHTML = `
+                    <p><strong>Q${index + 1}:</strong> ${q.question}</p>
+                    <div class="question-actions">
+                        <button class="btn btn-small edit-btn" data-index="${index}">Edit</button>
+                        <button class="btn btn-small btn-logout delete-btn" data-index="${index}">Delete</button>
+                    </div>
+                `;
+                questionList.appendChild(questionItem);
+            });
+
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.getAttribute('data-index');
+                    editQuestion(index);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.getAttribute('data-index');
+                    deleteQuestion(index);
+                });
+            });
+        }
+
+        function addQuestion() {
+            const question = questionInput.value.trim();
+            const option1 = option1Input.value.trim();
+            const option2 = option2Input.value.trim();
+            const option3 = option3Input.value.trim();
+            const option4 = option4Input.value.trim();
+            const correctAnswer = parseInt(correctAnswerSelect.value);
+            const explanation = explanationInput.value.trim();
+
+            if (!question || !option1 || !option2 || !option3 || !option4) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            const newQuestion = {
+                question,
+                options: [option1, option2, option3, option4],
+                correctAnswer,
+                explanation
+            };
+
+            quizQuestions.push(newQuestion);
+            localStorage.setItem('maitQuizQuestions', JSON.stringify(quizQuestions));
+            displayQuestionList();
+            clearAdminForm();
+        }
+
+        function editQuestion(index) {
+            const question = quizQuestions[index];
+            questionIdInput.value = index;
+            questionInput.value = question.question;
+            option1Input.value = question.options[0];
+            option2Input.value = question.options[1];
+            option3Input.value = question.options[2];
+            option4Input.value = question.options[3];
+            correctAnswerSelect.value = question.correctAnswer;
+            explanationInput.value = question.explanation || '';
+
+            addQuestionBtn.classList.add('hidden');
+            updateQuestionBtn.classList.remove('hidden');
+            cancelEditBtn.classList.remove('hidden');
+        }
+
+        function updateQuestion() {
+            const index = parseInt(questionIdInput.value);
+            const question = questionInput.value.trim();
+            const option1 = option1Input.value.trim();
+            const option2 = option2Input.value.trim();
+            const option3 = option3Input.value.trim();
+            const option4 = option4Input.value.trim();
+            const correctAnswer = parseInt(correctAnswerSelect.value);
+            const explanation = explanationInput.value.trim();
+
+            if (!question || !option1 || !option2 || !option3 || !option4) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            quizQuestions[index] = {
+                question,
+                options: [option1, option2, option3, option4],
+                correctAnswer,
+                explanation
+            };
+
+            localStorage.setItem('maitQuizQuestions', JSON.stringify(quizQuestions));
+            displayQuestionList();
+            clearAdminForm();
+        }
+
+        function deleteQuestion(index) {
+            if (confirm('Are you sure you want to delete this question?')) {
+                quizQuestions.splice(index, 1);
+                localStorage.setItem('maitQuizQuestions', JSON.stringify(quizQuestions));
+                displayQuestionList();
+            }
+        }
+
+        function cancelEdit() {
+            clearAdminForm();
+        }
+
+        function clearAdminForm() {
+            questionIdInput.value = '';
+            questionInput.value = '';
+            option1Input.value = '';
+            option2Input.value = '';
+            option3Input.value = '';
+            option4Input.value = '';
+            correctAnswerSelect.value = 0;
+            explanationInput.value = '';
+            addQuestionBtn.classList.remove('hidden');
+            updateQuestionBtn.classList.add('hidden');
+            cancelEditBtn.classList.add('hidden');
+        }
+
+        function startQuiz() {
+            // Shuffle questions
+            questionsShuffled = [...quizQuestions];
+            for (let i = questionsShuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [questionsShuffled[i], questionsShuffled[j]] = [questionsShuffled[j], questionsShuffled[i]];
+            }
+
+            loginSection.classList.add('hidden');
+            quizSection.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            loadQuestion();
+            quizStarted = true;
+        }
+
+        function loadQuestion() {
+            const currentQuestion = questionsShuffled[currentQuestionIndex];
+            
+            // Reset state
+            selectedOption = null;
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            timer.textContent = timeLeft;
+            timer.classList.remove('warning');
+            
+            // Update UI
+            questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${questionsShuffled.length}`;
+            questionText.textContent = currentQuestion.question;
+            
+            // Update progress bar
+            const progressPercentage = (currentQuestionIndex / questionsShuffled.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            
+            // Create options
+            optionsContainer.innerHTML = '';
+            
+            // Shuffle options for this question
+            const shuffledOptions = [...currentQuestion.options];
+            const correctOptionIndex = currentQuestion.correctAnswer;
+            const correctOptionValue = shuffledOptions[correctOptionIndex];
+            
+            for (let i = shuffledOptions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+            }
+            
+            // Find the new index of the correct answer after shuffling
+            const newCorrectIndex = shuffledOptions.indexOf(correctOptionValue);
+            
+            // Store the new correct index for checking answers
+            currentQuestion.shuffledCorrectAnswer = newCorrectIndex;
+            
+            shuffledOptions.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.setAttribute('data-index', index);
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // Clear feedback
+            feedback.style.display = 'none';
+            feedback.className = 'feedback';
+            
+            // Reset buttons
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+            
+            // Start timer
+            startTimer();
+        }
+        
+        function selectOption(e) {
+            // Remove selected class from all options
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.classList.remove('selected'));
+            
+            // Add selected class to clicked option
+            e.target.classList.add('selected');
+            
+            // Store selected option index
+            selectedOption = parseInt(e.target.getAttribute('data-index'));
+            
+            // Enable submit button
+            submitBtn.disabled = false;
+        }
+        
+        function checkAnswer() {
+            clearInterval(timerInterval);
+            
+            const currentQuestion = questionsShuffled[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.shuffledCorrectAnswer;
+            
+            // Update score if correct
+            if (isCorrect) {
+                score++;
+            }
+            
+            // Show feedback
+            feedback.style.display = 'block';
+            feedback.className = isCorrect ? 'feedback correct' : 'feedback wrong';
+            feedback.innerHTML = isCorrect 
+                ? `<strong>Correct!</strong> ${currentQuestion.explanation || ''}`
+                : `<strong>Incorrect.</strong> The correct answer is: ${currentQuestion.options[currentQuestion.correctAnswer]}. ${currentQuestion.explanation || ''}`;
+            
+            // Style options
+            const options = document.querySelectorAll('.option');
+            options.forEach((option, index) => {
+                option.classList.remove('selected');
+                
+                if (index === selectedOption) {
+                    option.classList.add(isCorrect ? 'correct' : 'wrong');
+                }
+                
+                if (index === currentQuestion.shuffledCorrectAnswer && !isCorrect) {
+                    option.classList.add('correct');
+                }
+                
+                // Disable options
+                option.removeEventListener('click', selectOption);
+            });
+            
+            // Show next button, hide submit button
+            submitBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+        
+        function loadNextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questionsShuffled.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+        
+        function showResults() {
+            quizSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            
+            const scorePercentage = (score / questionsShuffled.length) * 100;
+            scoreElement.textContent = `${score}/${questionsShuffled.length}`;
+            
+            let message = '';
+            if (scorePercentage >= 90) {
+                message = 'Excellent! You have outstanding knowledge about MAIT!';
+            } else if (scorePercentage >= 70) {
+                message = 'Great job! You know quite a lot about MAIT!';
+            } else if (scorePercentage >= 50) {
+                message = 'Good effort! You have a decent understanding of MAIT.';
+            } else {
+                message = 'You might want to learn more about MAIT. Keep exploring!';
+            }
+            
+            resultsMessage.textContent = message;
+        }
+        
+        function restartQuiz() {
+            resultsSection.classList.add('hidden');
+            shareContainer.classList.add('hidden');
+            startQuiz();
+        }
+        
+        function toggleShareOptions() {
+            shareContainer.classList.toggle('hidden');
+        }
+        
+        function takeScreenshot() {
+            // In a real application, this would use a library like html2canvas
+            alert('Screenshot functionality would be implemented using a library like html2canvas in a production environment.');
+        }
+        
+        function copyResult() {
+            const scoreText = scoreElement.textContent;
+            const messageText = resultsMessage.textContent;
+            const resultText = `I scored ${scoreText} on the MAIT Quiz! ${messageText}`;
+            
+            navigator.clipboard.writeText(resultText)
+                .then(() => {
+                    alert('Result copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy result.');
+                });
+        }
+        
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            timer.textContent = timeLeft;
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timer.textContent = timeLeft;
+                
+                if (timeLeft <= 10) {
+                    timer.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    
+                    if (selectedOption === null) {
+                        // Auto-select an option if none selected
+                        selectedOption = -1;
+                    }
+                    
+                    checkAnswer();
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
